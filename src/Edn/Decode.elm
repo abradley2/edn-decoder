@@ -1,7 +1,6 @@
 module Edn.Decode exposing
-    ( int, float, string, bool, char, keyword, symbol, nil, list, vector, set, setBy, ednMap, ednMapBy, tag, raw
+    ( int, float, string, bool, char, keyword, symbol, nil, list, vector, set, setBy, ednMap, ednMapBy, tag, raw, fail, succeed
     , andMap, andThen, atIndex, atKey, decodeEdn, decodeString, map, map2, map3, map4, map5, map6, map7, map8, oneOf, optional, try
-    , succeed
     )
 
 {-| Decode Edn values into Elm values. It mimics the API design of `elm/json` fairly closely.
@@ -9,7 +8,7 @@ module Edn.Decode exposing
 
 # Decoders
 
-@docs int, float, string, bool, char, keyword, symbol, nil, list, vector, set, setBy, ednMap, ednMapBy, tag, raw
+@docs int, float, string, bool, char, keyword, symbol, nil, list, vector, set, setBy, ednMap, ednMapBy, tag, raw, fail, succeed
 
 
 # Combinators
