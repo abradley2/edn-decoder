@@ -8,7 +8,7 @@ with a few noticeable changes due to the very different natures of `edn` and `js
 
 You will likely want to use this library in conjunction with 
 [edn-parser](https://github.com/abradley2/edn-parser) as the `Edn` type constructor
-is required to query fields in end maps.
+is required to query fields in edn maps.
 
 ```elm
 import Edn exposing (..)
