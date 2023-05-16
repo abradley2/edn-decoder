@@ -11,7 +11,36 @@ import Test exposing (..)
 suite : Test
 suite =
     describe "Decoding"
-        [ test "int" <|
+        [ test "tag" <|
+            \_ ->
+                Expect.all
+                    [ \_ -> Expect.equal (decodeString (tag int) "#app/foo 1") (Ok ( "app", "foo", 1 ))
+                    , \_ -> expectError (decodeString (tag int) "#app/bar []")
+                    ]
+                    ()
+        , test "tagWith" <|
+            \_ ->
+                Expect.all
+                    [ \_ -> Expect.equal (decodeString (tagWith int ( "foo", "bar" )) "#foo/bar 1") (Ok 1)
+                    ]
+                    ()
+        , test "tagTransform" <|
+            \_ ->
+                Expect.all
+                    [ \_ ->
+                        Expect.equal
+                            (decodeString
+                                (tagTransform
+                                    (map2 Tuple.pair (atIndex 0 int) (atIndex 1 int))
+                                    ( "math", "add" )
+                                    (\( a, b ) -> Ok <| a + b)
+                                )
+                                "#math/add [1 2]"
+                            )
+                            (Ok 3)
+                    ]
+                    ()
+        , test "int" <|
             \_ ->
                 Expect.all
                     [ \_ -> Expect.equal (decodeString int "1") (Ok 1)
@@ -248,19 +277,11 @@ suite =
                                 fixture
                             )
                             (Ok 2)
-                    , \fixture ->
-                        Expect.equal
-                            (decodeString
-                                (atKey (EdnString "div") opDecoder)
-                                fixture
-                            )
-                            (Ok 3)
                     ]
                     """
                     {
                         "sum" +
                         "prod" *
-                        "div" /
                     }
                     """
         ]

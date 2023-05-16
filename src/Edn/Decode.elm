@@ -1,19 +1,31 @@
 module Edn.Decode exposing
-    ( int, float, string, bool, char, keyword, symbol, nil, list, vector, set, setBy, ednMap, ednMapBy, tag, raw, fail, succeed
-    , andMap, andThen, atIndex, atKey, decodeEdn, decodeString, map, map2, map3, map4, map5, map6, map7, map8, oneOf, optional, try
+    ( Decoder
+    , decodeString, decodeEdn
+    , int, float, string, bool, char, keyword, symbol, nil, list, vector, set, setBy, ednMap, ednMapBy, tag, tagWith, tagTransform, raw, fail, succeed
+    , andMap, andThen, atIndex, atKey, map, map2, map3, map4, map5, map6, map7, map8, oneOf, optional, try
     )
 
 {-| Decode Edn values into Elm values. It mimics the API design of `elm/json` fairly closely.
 
 
+# Types
+
+@docs Decoder
+
+
+# Running Decoders
+
+@docs decodeString, decodeEdn
+
+
 # Decoders
 
-@docs int, float, string, bool, char, keyword, symbol, nil, list, vector, set, setBy, ednMap, ednMapBy, tag, raw, fail, succeed
+@docs int, float, string, bool, char, keyword, symbol, nil, list, vector, set, setBy, ednMap, ednMapBy, tag, tagWith, tagTransform, raw, fail, succeed
 
 
 # Combinators
 
-@docs andMap, andThen, atIndex, atKey, decodeEdn, decodeString, map, map2, map3, map4, map5, map6, map7, map8, oneOf, optional, try
+@docs andMap, andThen, atIndex, atKey, map, map2, map3, map4, map5, map6, map7, map8, oneOf, optional, try
 
 -}
 
@@ -95,6 +107,8 @@ type alias Context =
     }
 
 
+{-| Type alias over the function that decodes an edn value into an elm value
+-}
 type alias Decoder a =
     Context -> Edn -> Result String a
 
@@ -677,7 +691,8 @@ symbol symbolRep ctx value =
 
 
 {-| Decode an edn tag into an elm `Tuple` consisting of a required namespace, a tag name,
-and then a nested edn value for the decoder argument
+and then a nested edn value for the decoder argument. Only really useful if you are unaware
+of the tag being received. You will usually want to use `tagTransform` or `tagWith` instead.
 -}
 tag : Decoder a -> Decoder ( String, String, a )
 tag decoder ctx value =
@@ -689,6 +704,34 @@ tag decoder ctx value =
 
         _ ->
             Err <| showError (EdnTag "" "" EdnNil) value ctx
+
+
+{-| Decode a specific tag with a given namespace and a tagname
+-}
+tagWith : Decoder a -> ( String, String ) -> Decoder a
+tagWith decoder nsTag ctx value =
+    tagTransform decoder nsTag Ok ctx value
+
+
+{-| Decode a specific tag with a given namespace and tagname, and apply a transform that may
+fail
+-}
+tagTransform : Decoder a -> ( String, String ) -> (a -> Result String b) -> Decoder b
+tagTransform decoder nsTag transform ctx value =
+    case tag decoder ctx value of
+        Ok ( ns, tag_, v ) ->
+            if ns == Tuple.first nsTag && tag_ == Tuple.second nsTag then
+                transform v
+
+            else
+                Err <|
+                    showError
+                        (EdnTag (Tuple.first nsTag) (Tuple.second nsTag) (EdnSymbol "<any>"))
+                        value
+                        ctx
+
+        Err err ->
+            Err err
 
 
 {-| Try a list of decoders and take the first successful value or
