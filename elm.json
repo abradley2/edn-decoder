@@ -3,7 +3,7 @@
     "name": "abradley2/edn-decoder",
     "summary": "Decode edn into elm values",
     "license": "MIT",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "exposed-modules": [
         "Edn.Decode"
     ],
